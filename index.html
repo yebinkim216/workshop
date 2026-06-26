@@ -172,15 +172,13 @@ async function submitForm() {
   btn.textContent = '신청 중...';
   msg.textContent = '';
 
-  await fetchData();
-
-  const results = [];
+const results = [];
   for (const date of selectedDates) {
+    await fetchData();
     const first = getFirst(date);
     const rank = first >= MAX ? 2 : 1;
     const row = { name, email, date, rank, time: new Date().toISOString() };
     await insertRow(row);
-    registrations.push(row);
     results.push({ date, rank });
   }
 

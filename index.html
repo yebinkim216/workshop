@@ -98,7 +98,7 @@ const DATES = ['7/6(월)', '7/7(화)', '7/8(수)', '7/9(목)', '7/16(목)'];
 const MAX = 20;
 
 let registrations = [];
-let selectedDates = new Set();
+let selectedDates = [];
 let adminFilter = 'all';
 
 async function fetchData() {
@@ -140,7 +140,8 @@ function renderDates() {
     const first = getFirst(date);
     const full = first >= MAX;
     const few = first >= MAX - 5 && !full;
-    const sel = selectedDates.has(date);
+    const sel = selectedDates.includes(date);
+    const order = selectedDates.indexOf(date) + 1;
     const card = document.createElement('div');
     card.className = 'date-card' + (sel ? ' selected' : '');
     let badge = full
@@ -148,8 +149,20 @@ function renderDates() {
       : few
         ? `<span class="date-badge badge-few">잔여 ${MAX - first}석</span>`
         : `<span class="date-badge badge-ok">잔여 ${MAX - first}석</span>`;
-    card.innerHTML = `<div class="date-label">${date}</div><div class="date-slots">${first}/${MAX}명 신청</div>${badge}`;
-    card.onclick = () => { selectedDates.has(date) ? selectedDates.delete(date) : selectedDates.add(date); renderDates(); };
+    const priority = order > 0
+      ? `<div style="margin-top:6px;color:#2563eb;font-size:12px;font-weight:500">${order}순위</div>`
+      : '';
+
+    card.innerHTML = `<div class="date-label">${date}</div><div class="date-slots">${first}/${MAX}명 신청</div>${badge}${priority}`;
+    card.onclick = () => {
+      const idx = selectedDates.indexOf(date);
+      if (idx > -1) {
+        selectedDates.splice(idx,1);
+      } else {
+        selectedDates.push(date);
+      }
+      renderDates();
+    };
     grid.appendChild(card);
   });
 }
@@ -173,13 +186,11 @@ async function submitForm() {
   msg.textContent = '';
 
 const results = [];
-  for (const date of selectedDates) {
-    await fetchData();
-    const first = getFirst(date);
-    const rank = first >= MAX ? 2 : 1;
+  for (let i = 0; i < selectedDates.length; i++) {
+    const date = selectedDates[i];
+    const rank = i + 1;
     const row = { name, email, date, rank, time: new Date().toISOString() };
     await insertRow(row);
-    await new Promise(r => setTimeout(r, 500));
     results.push({ date, rank });
   }
 

@@ -179,6 +179,7 @@ const results = [];
     const rank = first >= MAX ? 2 : 1;
     const row = { name, email, date, rank, time: new Date().toISOString() };
     await insertRow(row);
+    await new Promise(r => setTimeout(r, 500));
     results.push({ date, rank });
   }
 
